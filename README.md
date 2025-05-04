@@ -1,6 +1,6 @@
 <div align="center">
   <img src="./assets/logo-auto.webp" width="200" />
-  <h1>Robot etransparencia</h1>
+  <h1>Robot Family Tree</h1>
 </div>
 
 # 🎮 Getting started
@@ -8,13 +8,13 @@
 <h3 style="font-size: 18px;">🧬 Clone this repository</h3>
 
 ```bash
-git clone https://github.com/joaovictorgit/transparencia-robot.git
+git clone https://github.com/joaovictorgit/family-tree.git
 ```
 
 <h3 style="font-size: 18px;">📂 Move yourself to the appropriate repository</h3>
 
 ```bash
-cd transparencia-robot
+cd family-tree
 ```
 
 <h3 style="font-size: 18px;">🎉 Install the package dependencies</h3>
@@ -39,7 +39,6 @@ npm run dev
 - Typescript
 - Node.js
 - Puppeteer
-- Axios
 - Yarn
 
 # 👨🏻‍💻 Author
