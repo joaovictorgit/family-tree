@@ -1,8 +1,23 @@
-import { chromium } from 'playwright';
+import { chromium, Page } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
 const sleep = (ms: number) => new Promise((res: any) => setTimeout(res, ms));
+
+const searchUser = async (page: Page) => {
+  await page.waitForSelector('#givenName', { state: 'visible' });
+  await page.fill('#givenName', 'Salvador');
+  await page.waitForSelector('#surname', { state: 'visible' });
+  await page.fill('#surname', 'Baena');
+  await page.waitForSelector('#anyDate_from', { state: 'visible' });
+  await page.fill('#anyDate_from', '1882');
+
+  await page.waitForSelector('#anyPlace', { state: 'visible' });
+  await page.fill('#anyPlace', 'Espanha');
+  await sleep(1000);
+  
+  await page.keyboard.press('Enter');
+}
 
 (async () => {
   const userDataDir = './user-data';  
@@ -35,11 +50,14 @@ const sleep = (ms: number) => new Promise((res: any) => setTimeout(res, ms));
     const loginButton = '#login';
     await page.waitForSelector(loginButton, { state: 'visible' });
     await page.click(loginButton);
-    
+    await sleep(1000);
+
+    searchUser(page);
+
   } catch (error) {
     console.error(error);
   } finally {
-    await context.close();
+    //await context.close();
 
     fs.rmSync(path.resolve(userDataDir), { recursive: true, force: true });
     console.log('Removido');
