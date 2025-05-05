@@ -1,4 +1,6 @@
 import { chromium } from 'playwright';
+import fs from 'fs';
+import path from 'path';
 
 const sleep = (ms: number) => new Promise((res: any) => setTimeout(res, ms));
 
@@ -12,15 +14,35 @@ const sleep = (ms: number) => new Promise((res: any) => setTimeout(res, ms));
   });
   const page = await context.newPage();
 
-  await page.goto('https://www.familysearch.org/pt/search/', { waitUntil: 'domcontentloaded' });
+  try {
+    await page.goto('https://www.familysearch.org/pt/search/', { waitUntil: 'domcontentloaded' });
+  
+    const aceitarSelector = '#truste-consent-button';
+    await page.waitForSelector(aceitarSelector, { timeout: 5000 });
+    await page.click(aceitarSelector);
+    await sleep(500);
+  
+    const entrarSelector = '#signInLink';
+    await page.waitForSelector(entrarSelector, { state: 'visible' });
+    await page.click(entrarSelector);
+    await sleep(1000);
+  
+    await page.waitForSelector('#userName', { state: 'visible' });
+    await page.fill('#userName', 'joaovictorgit');
+    await page.waitForSelector('#password', { state: 'visible' });
+    await page.fill('#password', '8bjSPkaz@yVUT25');
 
-  const aceitarSelector = '#truste-consent-button';
-  await page.waitForSelector(aceitarSelector, { timeout: 5000 });
-  await page.click(aceitarSelector);
-  await sleep(500);
+    const loginButton = '#login';
+    await page.waitForSelector(loginButton, { state: 'visible' });
+    await page.click(loginButton);
+    
+  } catch (error) {
+    console.error(error);
+  } finally {
+    await context.close();
 
-  const entrarSelector = '#signInLink';
-  await page.waitForSelector(entrarSelector, { state: 'visible' });
-  await page.click(entrarSelector);
+    fs.rmSync(path.resolve(userDataDir), { recursive: true, force: true });
+    console.log('Removido');
+  }
 
 })();
