@@ -1,76 +1,8 @@
 import { chromium, Page } from 'playwright';
 import fs from 'fs';
 import path from 'path';
-
-const sleep = (ms: number) => new Promise((res: any) => setTimeout(res, ms));
-
-const searchUser = async (page: Page) => {
-  const moreOptionsButtonSelector = 'button[data-testid="moreOptions-button"]';
-  await page.waitForSelector(moreOptionsButtonSelector, { state: 'visible' });
-  await page.click(moreOptionsButtonSelector);
-  await sleep(500);
-
-  await page.waitForSelector('#givenName', { state: 'visible' });
-  await page.fill('#givenName', 'Salvador');
-  await page.waitForSelector('#surname', { state: 'visible' });
-  await page.fill('#surname', 'Baena');
-
-  const removeEventButtonSelector = 'button[aria-label="Remove Event"]';
-  await page.waitForSelector(removeEventButtonSelector, { state: 'visible' });
-  await page.click(removeEventButtonSelector);
-  await sleep(500); 
-
-  const birthButtonSelector = 'button[data-testid="birthLike-fieldGroupButton"]';
-  await page.waitForSelector(birthButtonSelector, { state: 'visible' });
-  await page.click(birthButtonSelector);
-  await sleep(500);
-
-  const birthPlaceInput = 'input[data-testid="birthLikePlace0-field"]';
-  await page.waitForSelector(birthPlaceInput, { state: 'visible' });
-  await page.fill(birthPlaceInput, 'Espanha');
-  
-  await page.waitForFunction(() => {
-    const el = document.querySelector('input[data-testid="birthLikePlace0-field"]');
-    return el?.getAttribute('aria-expanded') === 'true';
-  }, { timeout: 5000 });
-
-  await page.keyboard.press('Enter');
-
-  const birthYearInput = 'input[aria-label="Ano de nascimento (de)"]';
-  await page.waitForSelector(birthYearInput, { state: 'visible' });
-  await page.fill(birthYearInput, '1882');
-
-  const birthYearToInput = 'input[aria-label="Ano de nascimento (até)"]';
-  await page.waitForSelector(birthYearToInput, { state: 'visible' });
-  await page.fill(birthYearToInput, '1884');
-
-  // Marcar checkbox "Exata"
-  const exactCheckbox = 'input[data-testid="q_birthLikeDate_exact"]';
-  await page.waitForSelector(exactCheckbox, { state: 'visible' });
-
-  // Clicar apenas se ainda não estiver marcado
-  const isCheckedDate = await page.isChecked(exactCheckbox);
-  if (!isCheckedDate) {
-    await page.click(exactCheckbox);
-  }
-
-  
-  const exactSearchSwitch = 'div[role="switch"][aria-label="Show Exact Search"]';
-  await page.waitForSelector(exactSearchSwitch, { state: 'visible' });
-
-  // Verificar se já está ativado, se não, clicar
-  const isChecked = await page.getAttribute(exactSearchSwitch, 'aria-checked');
-  if (isChecked === 'false') {
-    await page.click(exactSearchSwitch);
-    await sleep(300); // espera curta para o estado atualizar
-  }
-
-  // Clicar no botão "Pesquisar"
-  const searchButton = 'button[data-testid="search-button"]';
-  await page.waitForSelector(searchButton, { state: 'visible' });
-  await page.click(searchButton);
-
-}
+import { addRowsToOds } from './services/sheetsHelper';
+import { sleep, getInfoUsers, searchUser } from './utils';
 
 (async () => {
   const userDataDir = './user-data';  
@@ -105,12 +37,22 @@ const searchUser = async (page: Page) => {
     await page.click(loginButton);
     await sleep(1000);
 
-    searchUser(page);
+    await searchUser(page);
+
+    await sleep(5000);
+
+    const result = await getInfoUsers(page);
+
+    await sleep(2000);
+
+    const filePath = '/home/joao/Downloads/teste.ods';
+
+    addRowsToOds(filePath, result, null, true);
 
   } catch (error) {
     console.error(error);
   } finally {
-    //await context.close();
+    await context.close();
 
     fs.rmSync(path.resolve(userDataDir), { recursive: true, force: true });
     console.log('Removido');
