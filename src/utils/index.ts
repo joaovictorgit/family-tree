@@ -3,16 +3,23 @@ import { Page } from "playwright";
 export const sleep = (ms: number) =>
     new Promise(resolve => setTimeout(resolve, ms));
 
-export const searchUser = async (page: Page) => {
+export const searchUser = async (
+  page: Page,
+  givenName: string,
+  surName: string,
+  startDate: string,
+  endDate: string,
+  location: string,
+) => {
   const moreOptionsButtonSelector = 'button[data-testid="moreOptions-button"]';
   await page.waitForSelector(moreOptionsButtonSelector, { state: 'visible' });
   await page.click(moreOptionsButtonSelector);
   await sleep(500);
 
   await page.waitForSelector('#givenName', { state: 'visible' });
-  await page.fill('#givenName', 'Salvador');
+  await page.fill('#givenName', givenName);
   await page.waitForSelector('#surname', { state: 'visible' });
-  await page.fill('#surname', 'Baena');
+  await page.fill('#surname', surName);
 
   const removeEventButtonSelector = 'button[aria-label="Remove Event"]';
   await page.waitForSelector(removeEventButtonSelector, { state: 'visible' });
@@ -26,7 +33,7 @@ export const searchUser = async (page: Page) => {
 
   const birthPlaceInput = 'input[data-testid="birthLikePlace0-field"]';
   await page.waitForSelector(birthPlaceInput, { state: 'visible' });
-  await page.fill(birthPlaceInput, 'Espanha');
+  await page.fill(birthPlaceInput, location);
   
   await page.waitForFunction(() => {
     const el = document.querySelector('input[data-testid="birthLikePlace0-field"]');
@@ -37,11 +44,11 @@ export const searchUser = async (page: Page) => {
 
   const birthYearInput = 'input[aria-label="Ano de nascimento (de)"]';
   await page.waitForSelector(birthYearInput, { state: 'visible' });
-  await page.fill(birthYearInput, '1882');
+  await page.fill(birthYearInput, startDate);
 
   const birthYearToInput = 'input[aria-label="Ano de nascimento (até)"]';
   await page.waitForSelector(birthYearToInput, { state: 'visible' });
-  await page.fill(birthYearToInput, '1884');
+  await page.fill(birthYearToInput, endDate);
 
   const exactCheckbox = 'input[data-testid="q_birthLikeDate_exact"]';
   await page.waitForSelector(exactCheckbox, { state: 'visible' });

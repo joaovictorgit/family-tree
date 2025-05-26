@@ -1,61 +1,19 @@
-import { chromium, Page } from 'playwright';
-import fs from 'fs';
-import path from 'path';
-import { addRowsToOds } from './services/sheetsHelper';
-import { sleep, getInfoUsers, searchUser } from './utils';
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import routes from './routes';
 
-(async () => {
-  const userDataDir = './user-data';  
+dotenv.config();
 
-  const context = await chromium.launchPersistentContext(userDataDir, {
-    headless: false,
-    args: ['--disable-blink-features=AutomationControlled'],
-    viewport: { width: 1280, height: 800 },
-  });
-  const page = await context.newPage();
+const app = express();
+const PORT = process.env.PORT;
 
-  try {
-    await page.goto('https://www.familysearch.org/pt/search/', { waitUntil: 'domcontentloaded' });
-  
-    const aceitarSelector = '#truste-consent-button';
-    await page.waitForSelector(aceitarSelector, { timeout: 5000 });
-    await page.click(aceitarSelector);
-    await sleep(500);
-  
-    const entrarSelector = '#signInLink';
-    await page.waitForSelector(entrarSelector, { state: 'visible' });
-    await page.click(entrarSelector);
-    await sleep(1000);
-  
-    await page.waitForSelector('#userName', { state: 'visible' });
-    await page.fill('#userName', 'joaovictorgit');
-    await page.waitForSelector('#password', { state: 'visible' });
-    await page.fill('#password', '8bjSPkaz@yVUT25');
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(cors());
 
-    const loginButton = '#login';
-    await page.waitForSelector(loginButton, { state: 'visible' });
-    await page.click(loginButton);
-    await sleep(1000);
+app.use('/api', routes);
 
-    await searchUser(page);
-
-    await sleep(5000);
-
-    const result = await getInfoUsers(page);
-
-    await sleep(2000);
-
-    const filePath = '/home/joao/Downloads/teste.ods';
-
-    addRowsToOds(filePath, result, null, true);
-
-  } catch (error) {
-    console.error(error);
-  } finally {
-    await context.close();
-
-    fs.rmSync(path.resolve(userDataDir), { recursive: true, force: true });
-    console.log('Removido');
-  }
-
-})();
+app.listen(PORT, () => {
+  console.log('🚀 Server is running on port ', PORT);
+});
