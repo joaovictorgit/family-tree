@@ -42,15 +42,6 @@ class SearchController {
       return res.status(400).json('Preencha os campos obrigatórios');
     }
 
-    const userDataDir = './user-data';
-    /*const context = await chromium.launchPersistentContext(userDataDir, {
-      headless: true,
-      args: ['--disable-blink-features=AutomationControlled'],
-      //viewport: { width: 1280, height: 800 },
-    });
-
-    const page = await context.newPage();*/
-
     const browser = await chromium.launch({
       headless: true,
       args: ['--disable-blink-features=AutomationControlled'],

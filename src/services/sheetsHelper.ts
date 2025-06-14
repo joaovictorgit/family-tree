@@ -2,13 +2,20 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 
 /**
- * Adiciona várias linhas a uma planilha ODS local.
+ * Adiciona várias linhas em lotes a uma planilha ODS local.
  * @param {string} filePath - Caminho do arquivo .ods existente.
- * @param {Array<Object>} newRows - Array com objetos representando as novas linhas.
+ * @param {Array<Object>} newRows - Novas linhas a serem inseridas.
  * @param {string|null} sheetName - Nome da aba, ou null para primeira aba.
  * @param {boolean} overwrite - Se verdadeiro, sobrescreve o arquivo original.
+ * @param {number} batchSize - Tamanho do lote, default 30.
  */
-export function addRowsToOds(filePath: string, newRows: any, sheetName = null, overwrite = false) {
+export function addRowsToOds(
+  filePath: string,
+  newRows: any[],
+  sheetName: string | null = null,
+  overwrite: boolean = false,
+  batchSize: number = 30
+) {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Arquivo não encontrado: ${filePath}`);
   }
@@ -19,18 +26,19 @@ export function addRowsToOds(filePath: string, newRows: any, sheetName = null, o
 
   let existingData = XLSX.utils.sheet_to_json(sheet);
 
-  // Se a planilha estiver vazia, cria cabeçalhos com base no primeiro objeto
-  if (existingData.length === 0 && newRows.length > 0) {
-    existingData = [];
+  const outputPath = overwrite ? filePath : filePath.replace(/\.ods$/, '_atualizado.ods');
+  const totalBatches = Math.ceil(newRows.length / batchSize);
+
+  for (let i = 0; i < totalBatches; i++) {
+    const batch = newRows.slice(i * batchSize, (i + 1) * batchSize);
+    existingData = [...existingData, ...batch];
+
+    const newSheet = XLSX.utils.json_to_sheet(existingData);
+    workbook.Sheets[selectedSheetName] = newSheet;
+
+    XLSX.writeFile(workbook, outputPath);
+    console.log(`Batch ${i + 1}/${totalBatches} processado com ${batch.length} linhas.`);
   }
 
-  const allData = [...existingData, ...newRows];
-
-  const newSheet = XLSX.utils.json_to_sheet(allData);
-  workbook.Sheets[selectedSheetName] = newSheet;
-
-  const outputPath = overwrite ? filePath : filePath.replace(/\.ods$/, '_atualizado.ods');
-  XLSX.writeFile(workbook, outputPath);
-
-  console.log(`${newRows.length} linha(s) adicionada(s) a: ${outputPath}`);
+  console.log(`✅ Total de ${newRows.length} linhas adicionadas em ${totalBatches} lote(s): ${outputPath}`);
 }
